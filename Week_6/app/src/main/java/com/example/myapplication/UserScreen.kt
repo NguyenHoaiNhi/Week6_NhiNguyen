@@ -18,6 +18,8 @@ import com.example.myapplication.room.User
 import com.example.myapplication.room.UserDAO
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.user_screen.*
+import java.util.*
+import kotlin.concurrent.schedule
 
 
 class UserScreen : AppCompatActivity() {
@@ -25,30 +27,34 @@ class UserScreen : AppCompatActivity() {
     lateinit var userAdapter: UserAdapter
     lateinit var daoUser: UserDAO
 
-    var user = User()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.user_screen)
         initRoomDatabase()
         setupRecyclerView()
         getUser()
-        btnAdd.setOnClickListener{
+        btnAdd.setOnClickListener {
+            var user = User()
             // db1 = AppDatabase.invoke(this)
             user.name = edtUserID.text.toString()
-            daoUser.insert(user)
+            val id = daoUser.insert(user)
+            user.id = id.toInt()
             userAdapter.appenData(user)
 
         }
     }
-    private fun initRoomDatabase(){
+
+    private fun initRoomDatabase() {
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            DATABASE_NAME).allowMainThreadQueries()
+            DATABASE_NAME
+        ).allowMainThreadQueries()
             .build()
         daoUser = db.UserDAO()
     }
-    private fun setupRecyclerView(){
+
+    private fun setupRecyclerView() {
         rvUser.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
         userAdapter = UserAdapter(Users, this)
         rvUser.adapter = userAdapter
@@ -56,16 +62,25 @@ class UserScreen : AppCompatActivity() {
         userAdapter.notifyDataSetChanged() // notify data changed
 
     }
-    private val btRemove = object:ItemClickListener{
+
+    private val btRemove = object : ItemClickListener {
         override fun btRemoveClicked(position: Int) {
             Log.e("Users[position]", Users[position].toString())
             daoUser.delete(Users[position])
 
             userAdapter.removeItem(Users[position], position)
+
+            Timer(false).schedule(400) {
+                runOnUiThread {
+                    userAdapter.notifyDataSetChanged()
+                }
+            }
+
         }
 
     }
-    private fun getUser(){
+
+    private fun getUser() {
         val users = daoUser.getAll() // get Tasks from ROOM database
         Log.i("User: ", users.toString())
         this.Users.addAll(users) // add to task list
