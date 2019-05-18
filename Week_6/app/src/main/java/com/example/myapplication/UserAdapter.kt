@@ -22,7 +22,7 @@ class UserAdapter(var items: ArrayList<User>, val context: Context) : RecyclerVi
     override fun onBindViewHolder(userViewHolder: UserViewHolder, position: Int) {
         userViewHolder.tvUser.text = " $position  ${items[position].name}"
         userViewHolder.btRemove.setOnClickListener{
-            mListener.btRemoveClicked(userViewHolder.adapterPosition)
+            mListener.btRemoveClicked(position)
         }
     }
 
